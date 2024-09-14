@@ -1,0 +1,93 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct node{
+    int data;
+    struct node* next;
+    struct node *prev;
+}node;
+
+node *create(int data){
+    node *newnode=(struct node*)malloc(sizeof(struct node));
+    newnode->data=data;
+    newnode->next=NULL;
+    newnode->prev=NULL;
+}
+
+node *insertatfir(node *head){
+    int val;
+    scanf("%d",&val);
+    node *temp=create(val);
+    temp->next=head;
+    if(head!=NULL){
+        head->prev=temp;
+    }
+    return temp;
+}
+
+node *insertatlast(node *head){
+    int val;
+    scanf("%d",&val);
+    node *temp=head;
+    while(temp->next!=NULL){
+        temp=temp->next;
+    }
+    node *curr=create(val);
+    temp->next=curr;
+    curr->prev=temp;
+    
+    return head;
+}
+
+node *insertany(node *head){
+    int pos,val;
+    scanf("%d",&pos);
+    scanf("%d",&val);
+    node *temp=head;
+    for(int i=0;i<pos-2;i++){
+        temp=temp->next;
+    }
+    node *curr=temp->next;
+    temp->next=create(val);
+    temp->next->next=curr;
+    temp->next->prev=temp;
+    curr->prev=temp->next;
+    
+    return head;
+}
+
+void printlist(node *head){
+    node *curr=head;
+    while(curr!=NULL){
+        printf("%d ",curr->data);
+        curr=curr->next;
+    }
+}
+
+int main() {
+    
+    node *head=create(2);
+    head->next=create(3);
+    head->next->prev=head;
+    head->next->next=create(5);
+    head->next->next->prev=head->next;
+    
+    printlist(head);
+    printf("\n");
+
+     head=insertatfir(head);
+     
+     printlist(head);
+     printf("\n");
+
+     head=insertatlast(head);
+     
+     printlist(head);
+     
+     printf("\n");
+
+     head=insertany(head);
+     
+     printlist(head);
+    return 0;
+}
