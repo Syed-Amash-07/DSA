@@ -1,0 +1,132 @@
+# include <stdio.h>
+# include <stdlib.h>
+
+typedef struct node{
+     int data;
+     struct node *next;
+}node;
+
+node *create(int data){
+    node *newnode=(struct node*)malloc(sizeof(struct node));
+    newnode->data=data;
+    newnode->next=NULL;
+    
+    return newnode;
+}
+node *insertfir(node *head){
+    int a;
+    if(head==NULL){
+        printf("NO list found!!!");
+        return head;
+    }
+    else{
+        printf("\nEnter the element to enter at first!!!:");
+        scanf("%d",&a);
+        node *temp=head;
+        temp=create(a);
+        temp->next=head;
+        
+        return temp;
+        
+    }
+    
+}
+
+node *insertlast(node *head){
+    int a;
+    printf("\nEnter the element to enter:");
+    scanf("%d",&a);
+    node *temp=head;
+    while(temp->next!=NULL){
+        temp=temp->next;
+    }
+    temp->next=create(a);
+    return(head);
+}
+node *insertany(node *head){
+    int ele,pos;
+    printf("Enter the element to enter:");
+    scanf("%d",&ele);
+    printf("Enter the position to enter:");
+    scanf("%d",&pos);
+    node *temp=head;
+    if(pos==1){
+        node *temp=head;
+        temp=create(ele);
+        temp->next=head;
+        return head;
+    }
+    else{
+    for(int i=0;i<pos-2;i++){
+        temp=temp->next;
+    }
+    node *curr=temp->next;
+    temp->next=create(ele);
+    temp->next->next=curr;
+    
+    return(head);
+    }
+    
+}
+
+void printlist(node *head){
+    printf("\nThe elements:\n");
+         node *curr=head;
+         while(curr!=NULL){
+             printf(" %d ",curr->data);
+             curr=curr->next;
+         }
+         printf("\n");
+}
+
+int main(){
+     node *head=NULL;
+     node *last;
+     int num,val;
+     printf("Enter how many elements you want to enter:");
+     scanf("%d",&num);
+     for(int i=0;i<num;i++){
+          printf("Enter element %d:",i+1);
+          scanf("%d",&val);
+          node *temp=create(val);
+          if(head==NULL){
+              head=temp;
+              last=head;
+          }
+          else{
+              last->next=temp;
+              last=temp;
+          }
+          
+     }
+     int swit;
+     printf("\nEnter choices:\n1.Insert at first\n2.Insert at Last\n3.Insert at Anywhere\n4.Print the linked list\n5.Exit\n");
+     scanf("%d",&swit);
+     while(swit!=5){
+     switch(swit){
+         case 1:
+          head=insertfir(head);
+          printlist(head);
+          break;
+         case 2:
+          head=insertlast(head);
+          printlist(head);
+          break;
+         case 3:
+          head=insertany(head);
+          printlist(head);
+          break;
+         case 4:
+          printlist(head);
+          break;
+         default:
+          printf("ERRor InVaLIdd ChoiCE!!!!");
+          
+         
+     }
+          printf("\nEnter choices:\n1.Insert at first\n2.Insert at Last\n3.Insert at Anywhere\n4.Print the linked list\n5.Exit\n");
+     scanf("%d",&swit);
+     }
+     
+
+}
