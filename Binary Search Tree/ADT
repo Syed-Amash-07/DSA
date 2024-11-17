@@ -1,4 +1,3 @@
-// Online C compiler to run C program online
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -83,6 +82,41 @@ Node* postorder(Node* root){
     }
 }
 
+Node* delete(Node* root ,int key){
+    
+    if(root==NULL){
+        return root;
+    }
+    
+    if(key<root->data){
+        root->left=delete(root->left,key);
+    }
+    else if(key>root->data){
+        root->right=delete(root->right,key);
+    }
+    
+    else{
+        
+        if(root->left==NULL){
+            Node* temp=root->right;
+            free(root);
+            return temp;
+        }
+        else if(root->right==NULL){
+            Node* temp=root->left;
+            free(root);
+            return temp;
+        }
+        
+        Node* temp=findmin(root->right);
+        root->data=temp->data;
+        
+        root->right=delete(root->right,temp->data);
+        
+        
+    }
+    return root;
+}
 
 int main() {
      
@@ -92,7 +126,7 @@ int main() {
      
      
      while(1){
-         printf("Enter 1-Insert,2-Inorder transversal,3-Preorder,4-Postorder,5-find,6-findmin,7-findmax,9-Exit :");
+         printf("Enter 1-Insert,2-Inorder transversal,3-Preorder,4-Postorder,5-find,6-findmin,7-findmax,8-Delete,9-Exit :");
          scanf("%d",&x);
          switch(x){
              case 1:
@@ -149,8 +183,11 @@ int main() {
                 printf("\n");
                 break;
             case 8:
-            
-                 
+                printf("Enter the value to delete:");
+                scanf("%d",&y);
+                root=delete(root,y);
+                printf("\nSuccessfully deleted!!!\n");
+                break;
             case 9:
                 printf("Exiting....\n\n");
                 return 0;
