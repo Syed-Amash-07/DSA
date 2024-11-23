@@ -1,0 +1,292 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define TABLE_SIZE 10
+
+// Node structure for Chaining (Linked List)
+typedef struct Node {
+    int data;
+    struct Node* next;
+} Node;
+
+// Hash Table structure with Chaining or Open Addressing
+typedef struct HashTable {
+    int* table;               // For Open Addressing
+    Node** chainTable;        // For Chaining
+    int size;
+    int method;               // 0 for Chaining, 1 for Open Addressing
+    int probingMethod;        // 0 for Linear Probing, 1 for Quadratic Probing, 2 for Double Hashing
+} HashTable;
+
+// Hash function to map values to indices
+int hash(int key) {
+    return key % TABLE_SIZE;
+}
+
+// Second hash function for Double Hashing
+int hash2(int key) {
+    return 7 - (key % 7);
+}
+
+// Function to create a new hash table
+HashTable* createHashTable(int method, int probingMethod) {
+    HashTable* ht = (HashTable*)malloc(sizeof(HashTable));
+    ht->method = method;
+    ht->probingMethod = probingMethod;
+    ht->size = 0;
+
+    // Initialize table
+    if (method == 0) {  // Chaining
+        ht->chainTable = (Node**)malloc(TABLE_SIZE * sizeof(Node*));
+        for (int i = 0; i < TABLE_SIZE; i++) {
+            ht->chainTable[i] = NULL;
+        }
+    } else {  // Open Addressing
+        ht->table = (int*)malloc(TABLE_SIZE * sizeof(int));
+        for (int i = 0; i < TABLE_SIZE; i++) {
+            ht->table[i] = -1;  // -1 represents an empty slot
+        }
+    }
+
+    return ht;
+}
+
+// Function to insert a value into the hash table (Chaining)
+void insertChaining(HashTable* ht, int value) {
+    int index = hash(value);
+    
+    // Create a new node for the linked list
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->data = value;
+    newNode->next = ht->chainTable[index];
+    ht->chainTable[index] = newNode;
+
+    ht->size++;
+}
+
+// Function to insert a value into the hash table (Open Addressing)
+void insertOpenAddressing(HashTable* ht, int value) {
+    int index = hash(value);
+    int originalIndex = index;
+
+    // Linear probing, Quadratic probing, or Double hashing
+    int i = 0;
+    while (ht->table[index] != -1) {
+        if (ht->table[index] == value) {
+            printf("Value %d already exists in the table.\n", value);
+            return;  // Skip inserting if the value already exists
+        }
+
+        if (ht->probingMethod == 0) {  // Linear Probing
+            index = (originalIndex + i) % TABLE_SIZE;
+        } else if (ht->probingMethod == 1) {  // Quadratic Probing
+            index = (originalIndex + i * i) % TABLE_SIZE;
+        } else {  // Double Hashing
+            index = (originalIndex + i * hash2(value)) % TABLE_SIZE;
+        }
+
+        i++;
+        if (index == originalIndex) {
+            printf("Hash table is full, cannot insert value %d\n", value);
+            return;
+        }
+    }
+
+    ht->table[index] = value;
+    ht->size++;
+}
+
+// Function to insert a value into the hash table
+void insert(HashTable* ht, int value) {
+    if (ht->method == 0) {
+        insertChaining(ht, value);
+    } else {
+        insertOpenAddressing(ht, value);
+    }
+}
+
+// Function to find a value in the hash table (Chaining)
+int findChaining(HashTable* ht, int value) {
+    int index = hash(value);
+    Node* current = ht->chainTable[index];
+    
+    while (current != NULL) {
+        if (current->data == value) {
+            return 1;  // Found
+        }
+        current = current->next;
+    }
+    return 0;  // Not found
+}
+
+// Function to find a value in the hash table (Open Addressing)
+int findOpenAddressing(HashTable* ht, int value) {
+    int index = hash(value);
+    int originalIndex = index;
+    
+    int i = 0;
+    while (ht->table[index] != -1) {
+        if (ht->table[index] == value) {
+            return 1;  // Found
+        }
+
+        if (ht->probingMethod == 0) {  // Linear Probing
+            index = (originalIndex + i) % TABLE_SIZE;
+        } else if (ht->probingMethod == 1) {  // Quadratic Probing
+            index = (originalIndex + i * i) % TABLE_SIZE;
+        } else {  // Double Hashing
+            index = (originalIndex + i * hash2(value)) % TABLE_SIZE;
+        }
+
+        i++;
+        if (index == originalIndex) {
+            break;  // We have cycled through the whole table
+        }
+    }
+    return 0;  // Not found
+}
+
+// Function to delete a value from the hash table (Chaining)
+void deleteChaining(HashTable* ht, int value) {
+    int index = hash(value);
+    Node* current = ht->chainTable[index];
+    Node* prev = NULL;
+
+    while (current != NULL) {
+        if (current->data == value) {
+            if (prev == NULL) {
+                ht->chainTable[index] = current->next;
+            } else {
+                prev->next = current->next;
+            }
+            free(current);
+            ht->size--;
+            printf("Deleted value %d\n", value);
+            return;
+        }
+        prev = current;
+        current = current->next;
+    }
+    printf("Value %d not found for deletion.\n", value);
+}
+
+// Function to delete a value from the hash table (Open Addressing)
+void deleteOpenAddressing(HashTable* ht, int value) {
+    int index = hash(value);
+    int originalIndex = index;
+    
+    int i = 0;
+    while (ht->table[index] != -1) {
+        if (ht->table[index] == value) {
+            ht->table[index] = -1;  // Mark as deleted
+            ht->size--;
+            printf("Deleted value %d\n", value);
+            return;
+        }
+
+        if (ht->probingMethod == 0) {  // Linear Probing
+            index = (originalIndex + i) % TABLE_SIZE;
+        } else if (ht->probingMethod == 1) {  // Quadratic Probing
+            index = (originalIndex + i * i) % TABLE_SIZE;
+        } else {  // Double Hashing
+            index = (originalIndex + i * hash2(value)) % TABLE_SIZE;
+        }
+
+        i++;
+        if (index == originalIndex) {
+            break;  // We have cycled through the whole table
+        }
+    }
+    printf("Value %d not found for deletion.\n", value);
+}
+
+// Function to display the hash table (Chaining)
+void displayChaining(HashTable* ht) {
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        Node* current = ht->chainTable[i];
+        if (current != NULL) {
+            printf("Index %d: ", i);
+            while (current != NULL) {
+                printf("%d -> ", current->data);
+                current = current->next;
+            }
+            printf("NULL\n");
+        }
+    }
+}
+
+// Function to display the hash table (Open Addressing)
+void displayOpenAddressing(HashTable* ht) {
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        if (ht->table[i] != -1) {
+            printf("Index %d: %d\n", i, ht->table[i]);
+        }
+    }
+}
+
+// Main function to test the hash table
+int main() {
+    int method, probingMethod, choice, value;
+    
+    // Ask user for collision handling method
+    printf("Choose collision handling method:\n");
+    printf("0. Chaining\n");
+    printf("1. Open Addressing\n");
+    scanf("%d", &method);
+
+    if (method == 1) {
+        // If Open Addressing, ask for probing method
+        printf("Choose probing method for Open Addressing:\n");
+        printf("0. Linear Probing\n");
+        printf("1. Quadratic Probing\n");
+        printf("2. Double Hashing\n");
+        scanf("%d", &probingMethod);
+    } else {
+        probingMethod = -1; // Chaining does not need this
+    }
+
+    // Create the hash table with chosen methods
+    HashTable* ht = createHashTable(method, probingMethod);
+
+    while (1) {
+        printf("\nChoose operation:\n");
+        printf("1. Insert\n");
+        printf("2. Find\n");
+        printf("3. Delete\n");
+        printf("4. Display\n");
+        printf("5. Exit\n");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1: 
+                printf("Enter value to insert: ");
+                scanf("%d", &value);
+                insert(ht, value);
+                break;
+            case 2:
+                printf("Enter value to find: ");
+                scanf("%d", &value);
+                if (find(ht, value)) {
+                    printf("Value found\n");
+                } else {
+                    printf("Value not found\n");
+                }
+                break;
+            case 3:
+                printf("Enter value to delete: ");
+                scanf("%d", &value);
+                delete(ht, value);
+                break;
+            case 4:
+                if (ht->method == 0) {
+                    displayChaining(ht);
+                } else {
+                    displayOpenAddressing(ht);
+                }
+                break;
+            case 5:
+                free(ht);
+                exit(0);
+        }
+    }
+}
